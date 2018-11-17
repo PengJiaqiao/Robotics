@@ -9,6 +9,7 @@
 #include "Utils.h" // misc. utility functions, such as toRad, toDeg, etc.
 #include <math.h>
 #include <algorithm>
+#include <fstream>
 using std::min;
 using std::max;
 
@@ -23,7 +24,7 @@ struct CubicSpline {
 CubicSpline spline;
 
 double circle_start_time;
-double proj3_end_time;
+double proj3_start_time;
 
 double computeTf(GlobalVariables& gv);
 
@@ -201,7 +202,7 @@ void initProj2Control(GlobalVariables& gv) {
 }
 
 void initProj3Control(GlobalVariables& gv) {
-  proj3_end_time = gv.curTime + 15.0;
+  proj3_start_time = gv.curTime;
 }
 
 
@@ -258,6 +259,7 @@ void njtrackControl(GlobalVariables& gv) {
   if (gv.curTime <= spline.tf) {
     double t = gv.curTime - spline.t0;
     gv.qd = spline.a0 + spline.a1*t + spline.a2*pow(t, 2) + spline.a3*pow(t, 3);
+    gv.dqd = spline.a1 + 2*spline.a2*t + 3*spline.a3*pow(t, 2);
 
     gv.tau = -gv.kp * (gv.q - gv.qd) - gv.kv * (gv.dq - gv.dqd) + gv.G;
   } else {
@@ -324,6 +326,7 @@ void proj1Control(GlobalVariables& gv) {
   njtrackControl(gv);
 }
 
+
 void proj2Control(GlobalVariables& gv) {
   double center[] = {0.45, 0.60};
   double angular_velocity = 2*M_PI/5;
@@ -334,16 +337,62 @@ void proj2Control(GlobalVariables& gv) {
   gv.xd[1] = center[1] + sin(angle+M_PI/2) * radius;
   gv.xd[2] = 0;
 
-  PrVector F = -gv.kp * (gv.x - gv.xd) - gv.kv * (gv.dx - gv.dxd);
+  gv.dxd[0] = angular_velocity;
+  gv.dxd[1] = angular_velocity;
+  gv.dxd[2] = 0;
+
+  PrVector F = -gv.kp * (gv.x - gv.xd) - gv.kv * (gv.dx - gv.dxd) + gv.G;
   gv.tau = gv.Jtranspose * F;
+
+  ofstream fout("C3 - data.txt", ios::app);
+  fout<<gv.curTime<<" "<<gv.x[0]<<" "<<gv.x[1]<<" "<<gv.x[2]<<" "<<gv.xd[0]<<" "<<gv.xd[1]<<" "<<gv.x[0] - gv.xd[0]<<" "<<gv.x[1] - gv.xd[1]<<" "<<gv.tau[0]<<" "<<gv.tau[1]<<" "<<gv.tau[2]<<endl;
+  fout.close();
 }
 
+
 void proj3Control(GlobalVariables& gv) {
-  if (gv.curTime <= proj3_end_time) {
-    proj2Control(gv);
+  double t_b = 5.0;
+  double t_f = 20.0;
+  double acceleration = (2*M_PI)/(25.0);
+  double angular_velocity = (2*M_PI)/5.0;
+  double center[] = {0.45, 0.60};
+  double radius = 0.2;
+
+  if (gv.curTime <= proj3_start_time + t_f) {
+    double angle = 0.0;
+    double t = gv.curTime-proj3_start_time;
+
+    if (t <= t_b) {
+      // accelerating blend
+      angle = 0.5 * acceleration * pow(t, 2); 
+
+      gv.dxd[0] = acceleration * t;
+      gv.dxd[1] = acceleration * t;
+    } else if (t < t_f - t_b) {
+      // linear part
+      angle = 0.5 * acceleration * pow(t_b, 2) + angular_velocity * (t - t_b);
+
+      gv.dxd[0] = angular_velocity;
+      gv.dxd[1] = angular_velocity;
+    } else {
+      // decelerating blend
+      angle = 6*M_PI - 0.5 * acceleration * pow((t_f - t), 2); 
+
+      gv.dxd[0] = acceleration * (t_f - t);
+      gv.dxd[1] = acceleration * (t_f - t);
+    }
+
+    gv.xd[0] = center[0] + cos(angle+M_PI/2) * radius;
+    gv.xd[1] = center[1] + sin(angle+M_PI/2) * radius;
+
+    PrVector F = -gv.kp * (gv.x - gv.xd) - gv.kv * (gv.dx - gv.dxd);
+    gv.tau = gv.Jtranspose * F;
   } else {
     floatControl(gv);
   }
+  ofstream fout("C4 - data.txt", ios::app);
+  fout<<gv.curTime<<" "<<gv.x[0]<<" "<<gv.x[1]<<endl;
+  fout.close();
 }
 
 // *******************************************************************
@@ -387,7 +436,8 @@ ADD HERE ALL STUDENT DEFINED AND AUX FUNCTIONS
 *******************************************************/
 
 double computeTf(GlobalVariables& gv) {
-  double tf = gv.curTime;
+  double ct = gv.curTime;
+  double tf = 0; 
 
   PrVector distance = gv.qd - gv.q;
 
@@ -423,6 +473,12 @@ double computeTf(GlobalVariables& gv) {
 
   /* fprintf(stdout, "%f\n", tf+2*accel_offset); */
 
-  return tf + 2*accel_offset;
+  /* fprintf(stdout, "dq: %f\n", gv.dqmax[0]); */
+  /* fprintf(stdout, "ddq: %f\n", gv.ddqmax[0]); */
+  /* fprintf(stdout, "dt1: %f\n", tf); */
+  /* fprintf(stdout, "dt2: %f\n", tf + 2*accel_offset); */
+
+  return ct + tf + 2*accel_offset;
+
   /* return gv.curTime + 10.0; */
 }
