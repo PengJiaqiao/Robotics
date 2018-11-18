@@ -9,7 +9,6 @@
 #include "Utils.h" // misc. utility functions, such as toRad, toDeg, etc.
 #include <math.h>
 #include <algorithm>
-#include <fstream>
 using std::min;
 using std::max;
 
@@ -341,12 +340,8 @@ void proj2Control(GlobalVariables& gv) {
   gv.dxd[1] = angular_velocity;
   gv.dxd[2] = 0;
 
-  PrVector F = -gv.kp * (gv.x - gv.xd) - gv.kv * (gv.dx - gv.dxd) + gv.G;
+  PrVector F = -gv.kp * (gv.x - gv.xd) - gv.kv * (gv.dx - gv.dxd);
   gv.tau = gv.Jtranspose * F;
-
-  ofstream fout("C3 - data.txt", ios::app);
-  fout<<gv.curTime<<" "<<gv.x[0]<<" "<<gv.x[1]<<" "<<gv.x[2]<<" "<<gv.xd[0]<<" "<<gv.xd[1]<<" "<<gv.x[0] - gv.xd[0]<<" "<<gv.x[1] - gv.xd[1]<<" "<<gv.tau[0]<<" "<<gv.tau[1]<<" "<<gv.tau[2]<<endl;
-  fout.close();
 }
 
 
@@ -390,9 +385,6 @@ void proj3Control(GlobalVariables& gv) {
   } else {
     floatControl(gv);
   }
-  ofstream fout("C4 - data.txt", ios::app);
-  fout<<gv.curTime<<" "<<gv.x[0]<<" "<<gv.x[1]<<endl;
-  fout.close();
 }
 
 // *******************************************************************

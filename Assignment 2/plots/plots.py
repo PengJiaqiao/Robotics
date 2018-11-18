@@ -117,24 +117,41 @@ def C4_plot():
     # plot of angle beta & angular velocity
     angle = []
     angular_vel = []
+    offset = 0
 
     for i in range(len(data[:, 1])):
-        angle.append(math.atan((data[i, 1] - 0.45) / (data[i, 2] - 0.6)))
+        temp = math.atan(((data[i, 1] - 0.45) / (data[i, 2] - 0.6)))
+        if i > 0:
+            if math.atan(((data[i-1, 1] - 0.45) / (data[i-1, 2] - 0.6)))*temp < 0 :
+                offset = angle[i-1]
+            if ((data[i, 1] - 0.45) > 0) and ((data[i, 2] - 0.6) < 0):
+                temp = math.atan((data[i, 1] - 0.45)/abs(data[i, 2] - 0.6))
+            if ((data[i, 1] - 0.45) < 0) and ((data[i, 2] - 0.6) < 0):
+                temp = math.atan((data[i, 2] - 0.6)/(data[i, 1] - 0.45))
+            if ((data[i, 1] - 0.45) < 0) and ((data[i, 2] - 0.6) > 0):
+                temp = math.atan((abs(data[i, 1] - 0.45) / (data[i, 2] - 0.6)))
+            if ((data[i, 1] - 0.45) > 0) and ((data[i, 2] - 0.6) > 0):
+                temp = math.atan((data[i, 2] - 0.6)/(data[i, 1] - 0.45))
+        angle.append(temp + offset)
+    for i in range(len(angle)):
+        angle[i] = angle[i] - 1.57078 # pi/2
 
     for i in range(len(angle) - 1):
         angular_vel.append((angle[i + 1] - angle[i]) / (data[i + 1, 0] - data[i, 0]))
 
-    fig, ax1 = plt.subplots()
-    ax1.plot(data[:, 0], angle, 'r.')
-    ax1.set_xlabel('time')
+    fig, ax = plt.subplots(2, 1)
+    ax[0].plot(data[1:, 0], angle[1:], color = 'C0')
+    ax[0].set_xlabel('time')
 
-    ax1.set_ylabel('angle', color='r')
-    ax1.tick_params('y', colors='r')
+    ax[0].set_ylabel('angle', color='r')
+    ax[0].tick_params('y', colors='r')
+    ax[0].grid
 
-    ax2 = ax1.twinx()
-    ax2.plot(data[0:len(data[:, 1]) - 1, 0], angular_vel, 'b-')
-    ax2.set_ylabel('angle velocity', color='b')
-    ax2.tick_params('y', colors='b')
+    ax[1].plot(data[2:len(data[:, 1]), 0], angular_vel[1:], color = 'C1')
+    ax[1].set_ylabel('angle velocity', color='b')
+    ax[1].tick_params('y', colors='b')
+    ax[1].set_yticks([-2, 0, 2, 4])
+    ax[1].grid
 
     fig.tight_layout()
     plt.show()

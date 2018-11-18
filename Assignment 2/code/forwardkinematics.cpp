@@ -97,7 +97,7 @@ void ForwardKinematicsPuma2D::setJoints(float a1, float a2, float a3)
 /*
 updates the variable T0_1
 
-<ADD EXPLANATION OF CODE>
+Compute T0_1 using the given DH-parameter definitions
 */
 void ForwardKinematicsPuma2D::computeT0_1() {
   // 1st row vector
@@ -129,7 +129,7 @@ void ForwardKinematicsPuma2D::computeT0_1() {
 /*
 updates the variable T1_2
 
-<ADD EXPLANATION OF CODE>
+Compute T1_2 (transformation between links 1-2) using the given DH-parameter definitions
 */
 void ForwardKinematicsPuma2D::computeT1_2() {
   // 1st row vector
@@ -160,7 +160,7 @@ void ForwardKinematicsPuma2D::computeT1_2() {
 /*
 updates the variable T2_3
 
-<ADD EXPLANATION OF CODE>
+Compute T2_3 (transformation between links 2-3) using the given DH-parameter definitions
 */
 void ForwardKinematicsPuma2D::computeT2_3() {
   // 1st row vector
@@ -192,7 +192,7 @@ void ForwardKinematicsPuma2D::computeT2_3() {
 /*
 updates the variable T3_E
 
-<ADD EXPLANATION OF CODE>
+Compute T3_E (transformation between links 3-End-effector) using the given DH-parameter definitions
 */
 void ForwardKinematicsPuma2D::computeT3_E() {
   // 1st row vector
@@ -224,7 +224,7 @@ void ForwardKinematicsPuma2D::computeT3_E() {
 /*
 This function updates the variable T0_E
 
-<ADD EXPLANATION OF CODE>
+Compute T0_E (transformations until the end-effector) using the given DH-parameter definitions
 */
 void ForwardKinematicsPuma2D::computeT0_E() {
   //row vector
@@ -256,19 +256,19 @@ void ForwardKinematicsPuma2D::computeT0_E() {
 /*
 This function updates the variables ee_x, ee_y, ee_alpha
 
-<ADD EXPLANATION OF CODE>
+Using the transformatinon T0_E matix elements for getting the end-effector positins in 'x' any 'y' directions. The orientation is computed by adding the joint angles.
 */
 void ForwardKinematicsPuma2D::computeF() {
   F[0] = T0_E[0][3]; //x
   F[1] = T0_E[1][3]; //y
-  F[2] = angles[0]+angles[1]+angles[2]; //alpha
+  F[2] = angles[0]+angles[1]-M_PI_2+angles[2]; //alpha
 }
 
 
 /*
 This function updates the variable J
 
-<ADD EXPLANATION OF CODE>
+Calculating the end-effector jacobian matrix by partial-deriving the end-effector position and orientation vector by the angles
 */
 void ForwardKinematicsPuma2D::computeJ() {
   // 1st row vector (F[0] derived after angles[0], angles[1] and angles[2])
