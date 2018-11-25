@@ -74,9 +74,9 @@
   \begin{center}
     \begin{tabular}{rccccccccccc}
                ~          & \textbf{A1} & \textbf{A2} & \textbf{A3} & \textbf{(A4)} & \textbf{(B1)} & \textbf{B2} & \textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4} & \textbf{C5}\\\hline
-      Jiaqiao Peng        &      ~      &      ~      &      ~      &       ~       &       ~       &      ~      &      ~      &      ~      &      ~      &      ~      &      ~     \\\hline
-      Benjamin Oesterle   &      x      &      x      &      x      &       ~       &       ~       &      x      &      x      &      x      &      x      &      x      &      x     \\\hline
-      Botond Péter Sléber &      ~      &      ~      &      ~      &       ~       &       ~       &      ~      &      ~      &      ~      &      ~      &      ~      &      ~     \\\hline
+      Jiaqiao Peng        &      ~      &      ~      &      ~      &       ~       &       x       &      x      &      x      &      ~      &      x      &      x      &      ~     \\\hline
+      Benjamin Oesterle   &      x      &      x      &      x      &       x       &       x       &      x      &      x      &      x      &      x      &      x      &      ~     \\\hline
+      Botond Péter Sléber &      x      &      x      &      x      &       x       &       x       &      x      &      ~      &      ~      &      ~      &      ~      &      ~     \\\hline
       Dhananjay Mukhedkar &      x      &      x      &      x      &       ~       &       x       &      ~      &      ~      &      ~      &      ~      &      x      &      ~     \\\hline
       
     \end{tabular}
@@ -536,18 +536,32 @@ Results:
 	\hline 
 \end{tabular} 
 
+% -------------------------------------
+
 \subsection*{b)}
 
-TODO: graph showing $q_i$ over time for the \textbf{whole} trajectory
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{../plots/B1(b)}
+  \caption{joint configuration $q$ over time}
+\end{figure}
+
+% -------------------------------------
 
 \subsection{Trajectories In Joint Space}
 
 \setcounter{subsection}{2}
 \subsection{~}
 
-TODO: graph showing $\tau$ over time for the \textbf{whole} trajectory
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.8]{img/B2_c_q}
+\end{figure}
 
-TODO: graph showing $q_i$ and $q_d$ over time for the \textbf{whole} trajectory
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.8]{img/B2_c_tau}
+\end{figure}
 
 \newpage
 
@@ -560,28 +574,61 @@ TODO: graph showing $q_i$ and $q_d$ over time for the \textbf{whole} trajectory
   \begin{center}
     \begin{tabular}{c|c|c|c|c|c}
       \texttt{kp[0]} & \texttt{kp[1]} & \texttt{kp[2]} & \texttt{kv[0]} & \texttt{kv[1]} & \texttt{kv[2]}\\\hline
-      TODO & TODO & TODO & TODO & TODO & TODO
+      2500 &1500 &400 &20 &100 &40 
     \end{tabular}
     \caption{our positional and velocity gains after tuning}
   \end{center}
 \end{table}
 
-TODO: graph showing $x$ and $x_d$ over time $t$ of \textbf{one} circle
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{img/C3_error0}
+  \includegraphics[scale=0.6]{img/C3_error1}
+  \caption{position error $e = x - x_d$ over time}
+\end{figure}
 
-TODO: graph showing the position error $e = x - x_d$ over time $t$ of \textbf{one} circle
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{img/C3_tau0}
+  \includegraphics[scale=0.6]{img/C3_tau1}
+  \includegraphics[scale=0.6]{img/C3_tau2}
+  \caption{torque $\tau$ over time}
+\end{figure}
 
-\textbf{How does the graph for the position error $e = x - x_d$ change for different values of \texttt{kp}?}
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{img/C3_theta0}
+  \includegraphics[scale=0.6]{img/C3_theta1}
+  \includegraphics[scale=0.6]{img/C3_theta2}
+  \caption{angle $\theta$ over time}
+\end{figure}
 
-TODO: answer question
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{img/C3_x0_xd0}
+  \includegraphics[scale=0.6]{img/C3_x1_xd1}
+  \caption{position $x$ and desired position $x_d$ over time}
+\end{figure}
 
-TODO: graph showing $\tau$ over time $t$ of \textbf{one} circle
 
-TODO: graph showing $\theta$ over time $t$ of \textbf{one} circle
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{img/C3_2D_plane_x}
+  \caption{position $x$ in the 2D plane}
+\end{figure}
 
-TODO: graph showing $x$ and $x_d$ in the 2D plane
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{img/C3_2D_plane_xd}
+  \caption{desired position $x_d$ in the 2D plane}
+\end{figure}
 
 \subsection{~}
 
-TODO: graph showing the angle $\beta$ and the angular velocity $\dot{\beta}$ over time for the \textbf{whole} trajectory
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{img/C4}
+  \caption{angle $\beta$ and angular velocity $\dot{\beta}$ over time}
+\end{figure}
 
 \end{document}
