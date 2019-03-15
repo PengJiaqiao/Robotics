@@ -1,0 +1,324 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[margin=30mm]{geometry}
+
+\setlength{\parskip}{12pt}
+\setlength{\parindent}{0pt}
+
+% language
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+\usepackage{graphicx}         % includegraphics{}
+\usepackage{float}            % H placement for figures
+\usepackage{amsmath}          % bmatrix, pmatrix
+\usepackage{amssymb}
+\usepackage{siunitx}
+
+
+% -----------------------------------------------------------------------------
+
+
+\begin{document}
+\begin{center}
+  \textbf{\Huge TU Berlin Robotics WiSe 18/19} \\
+  \textbf{\huge Lab Assignment \#3}
+\end{center}
+
+\vfill
+
+\begin{table}[h!]
+  \begin{center}
+    \begin{tabular}{c|c|c|c|c|c|c|c|c|c}
+      Student Name    & \textbf{(A)} & \textbf{(B1)} & \textbf{B2.a} & \textbf{B2.b} & \textbf{B3.a} & \textbf{B3.b} & \textbf{B3.c} & \textbf{B4} & \textbf{B5}\\\hline\hline
+      Jiaqiao Peng    &       x      &       ~       &       ~       &       ~       &       x       &       x       &       x       &      ~      &      ~     \\\hline
+      Dayyan Smith    &       x      &       ~       &       x       &       x       &       x       &       ~       &       ~       &      ~      &      ~     \\\hline
+      Benjamin Oesterle  &       x      &       ~       &       x       &       x       &       x       &       x       &       x       &      x      &      x     \\\hline
+      Botond Péter Sléber &       ~      &       x       &       x       &       x       &       x       &       x       &       x       &      ~      &      ~ \\\hline
+      Isma-Ilou Sadou &       x      &       ~       &       x       &       x       &       x       &       x       &       ~       &      ~      &      ~
+    \end{tabular}
+    \caption{implementation table}
+  \end{center}
+\end{table}
+
+\newpage
+
+
+\section*{A. Control Theory}
+
+\subsection*{1(a) Find the natural frequency $\omega_n$ and the natural damping ratio $\zeta_n$ of the natural system, i.e., $f = 0$. What kind of system is this?}
+
+\begin{flushright}
+\textbf{given:} $m = 2,~b = 12,~k = 18$ 
+\end{flushright}
+    
+$\omega_n = \sqrt{\frac{k}{m}} = \sqrt{\frac{18}{2}} = \sqrt{9} = 3$
+
+$\zeta_n = \frac{b}{2\sqrt{k \cdot m}} = \frac{12}{2 \sqrt{18 \cdot 2}} = \frac{12}{2 \sqrt{36}} = \frac{12}{2 \cdot 6} = \frac{12}{12} = 1$
+
+This system is \emph{critically damped} because the damping ratio $\zeta_n$ is equal to $1$.
+
+% -------------------------------------
+
+\subsection*{1(b) Design a PD controller $f$ that realizes a critically damped system with a closed-loop stiffness of $k_{CLS} = 32$. Assume that the desired position is $x_d = 0$. (Hint: $k_{CLS}$ refers to the stiffness of the closed-loop controller composed of the physical system and the controller $f$)}
+
+The dynamics of the system are described by:
+
+\begin{equation}\label{eq:sys_dyn}
+m\Ddot{x} + b\Dot{x} + kx = f
+\end{equation}
+
+where $f$ is the PD-controller we are designing and the right-hand side decribes the physical system (of which the parameters $m = 2, b = 12$ and $k = 18$ are assumed to be known here).
+
+A PD-controller is described by the following control law:
+
+\begin{equation}\label{eq:control_law}
+f = -k_v\Dot{x} - k_px
+\end{equation}
+
+By inserting \eqref{eq:control_law} into \eqref{eq:sys_dyn} we can derive the closed-loop dynamics:
+
+\begin{equation}
+m\Ddot{x} + b\Dot{x} + kx = -k_v\Dot{x} - k_px
+\end{equation}
+
+which (by simple rearrangement) can also be formulated as:
+
+\begin{equation}
+m\Ddot{x} + (b+k_v)\Dot{x} + (k+k_p)x = 0
+\end{equation}
+
+Here $k + k_p$ has to be equal to the desired closed-loop stiffness $k_{CLS} = 32$:
+
+\begin{equation}
+k + k_p = 32~\Longleftrightarrow~k_p = 32 - k = 32 - 18 = 14
+\end{equation}
+
+As we want to achieve critical damping we also know how to choose $b+k_v$:
+
+\begin{equation}
+b + k_v = 2\sqrt{m \cdot k_{CLS}} = 2\sqrt{2 \cdot 32} = 2\sqrt{64} = 2 \cdot 8 = 16~\Longleftrightarrow~k_v = 16 - b = 16 - 12 = 4 
+\end{equation}
+
+Once we have chosen $k_p$ and $k_v$ we can insert their values in our control law \eqref{eq:control_law}:
+
+\begin{equation}
+f = -4\Dot{x} - 14x 
+\end{equation}
+
+If all physical parameters are correct, this PD-controller $f$ will realize the desired behavior.
+
+% -------------------------------------
+    
+\subsection*{1(c) Assume that the friction changes from linear friction ($b = 12\Dot{x}$) to Coulomb friction: $b = 30 \cdot sign(\Dot{x})$. Design a controller $f$ that uses a non-linear model-based portion with trajectory following to critically damp the system at all times and maintain a closed-loop stiffness of $k_{CLS} = 32$. Note that $f$ is an m-mass control, while $f'$ is a unit-mass control. What are $\alpha, \beta, k_v$ and $k_p$? Write down $f'$ while using the definition of error $e = x - x_d$. (Again: $k_{CLS}$ refers to the stiffness of the closed-loop system composed of the model-based portion and the control-law portion).}
+
+The dynamics of the system are still described by:
+
+\begin{equation}\label{eq:sys_dyn_C}
+m\Ddot{x} + b\Dot{x} + kx = f
+\end{equation}
+
+Though our control law this time is defined using control law partioning:
+
+\begin{equation}\label{eq:control_law_C}
+f = \alpha f' + \beta
+\end{equation}
+
+where $f'$ (for trajectory following of a unit-mass system) is defined as:
+
+\begin{equation}\label{eq:f_prime}
+f' = \Ddot{x}_d - k_v'(\Dot{x} - \Dot{x}_d) - k_p'(x - x_d)
+\end{equation}
+
+In order for this to work we have to choose $\alpha$ and $\beta$ in a way that it reduces the system in a way, that it will appear as a unit mass system from the $f'$ input. Given \eqref{eq:sys_dyn_C} this results in:
+
+\begin{equation}\label{eq:alpha_beta}
+\alpha = m \hspace{22mm} \beta = b\Dot{x} + kx
+\end{equation}
+
+Inserting our knowledge from \eqref{eq:f_prime} and \eqref{eq:alpha_beta} into our control law partioning \eqref{eq:control_law_C} and then using this in \eqref{eq:sys_dyn_C} gives us again the formula describing the closed-loop dynamics of our system:
+
+\begin{equation}
+m\Ddot{x} + b\Dot{x} + kx = m \cdot (\Ddot{x}_d - k_v'(\Dot{x} - \Dot{x}_d) - k_p'(x - x_d)) + b\Dot{x} + kx
+\end{equation}
+
+which (by simple rearrangement, using the definition of the error $e$) can also be formulated as:
+
+\begin{equation}\label{eq:closed_loop}
+\Ddot{me} + mk_v'\Dot{e} + mk_p'e = 0
+\end{equation}
+
+Here $mk_p'$ has to be equal to the desired closed-loop stiffness $k_{CLS} = 32$:
+
+\begin{equation}
+mk_p' = 32~\Longleftrightarrow~k_p = \frac{32}{m} = \frac{32}{2} = 16
+\end{equation}
+
+As we want to achieve critical damping we also know how to choose $mk_v'$:
+
+\begin{equation}
+mk_v' = 2\sqrt{m \cdot k_{CLS}} = 2\sqrt{2 \cdot 32} = 2\sqrt{64} = 2 \cdot 8 = 16~\Longleftrightarrow~k_v = \frac{16}{m} = \frac{16}{2} = 8
+\end{equation}
+
+Once we have chosen $k_p$ and $k_v$ we can insert their values in our trajectory control law \eqref{eq:f_prime}:
+
+\begin{equation}
+f' = \Ddot{x}_d - 8(\Dot{x} - \Dot{x}_d) - 16(x - x_d)
+\end{equation}
+
+If all physical parameters are correct, our control law \eqref{eq:control_law} will realize the desired behavior.
+
+% -------------------------------------
+    
+\subsection*{1(d) What is the steady-state error $e = x - x_d$ of the system in part (c) (i.e. when $\Ddot{e} = \Dot{e} = 0$) if it is disturbed by a constant force $f_{dist} = 4$?}
+
+Setting all derivatives in the closed-loop dynamics \eqref{eq:closed_loop} to zero yields:
+
+\begin{equation}
+k_{CLS} \cdot e = f_{dist}
+\end{equation}
+
+By rearrangement of this formula we arrive at the steady-state error:
+
+\begin{equation}
+e = \frac{f_{dist}}{k_{CLS}} = \frac{4}{32} = \frac{1}{8}
+\end{equation}    
+
+\newpage
+
+% -----------------------------------------------------------------------------
+
+\section*{B. Visual Servoing}
+
+\subsection*{1. Image Features}
+
+\textbf{\large Feature 1: Isoceles Triangle}
+	
+\textbf{Extraction:} Only the three edges have to be detected, relatively easy.
+
+\textbf{Feature Parameters:}
+\begin{itemize}
+ \item $a, b$: length of the sides
+ \item $u, v$: the bounding rectangle sides
+ \item $\alpha$: rotation of the rectangle ($\alpha \in [\ang{0}, \ang{360}]$)
+\end{itemize}
+
+\textbf{Controllable DoFs:} 4 ($x, y, z$ and $z$-rotation) 
+
+\textbf{Dimensionality of the Image Jacobian:} $5 \times 4$\\
+($k \times m$ with $k$ = dimension of feature space, $m$ = dimension of task space)
+
+The resulting system of equations is \underline{overconstrained} (because $k > m$).
+
+\vspace{1em}
+% -----------------
+
+\textbf{\large Feature 2: Line}
+	
+\textbf{Extraction:} Only one edge has to be detected, easiest.
+
+\textbf{Feature Parameters:}
+\begin{itemize}
+ \item $a$: length of the sides
+ \item $u, v$: the bounding rectangle sides
+ \item $\alpha$: rotation of the rectangle ($\alpha \in [\ang{0}, \ang{180}]$)
+\end{itemize}
+
+\textbf{Controllable DoFs:} 4 ($x, y, z$ and $z$-rotation)\\
+There will be ambiguities regarding $z$-rotation though!
+
+\textbf{Dimensionality of the Image Jacobian:} $4 \times 4$\\
+($k \times m$ with $k$ = dimension of feature space, $m$ = dimension of task space)
+
+The resulting system of equations is \underline{well-formed} (because $k = m$).
+
+\vspace{1em}
+% -----------------
+
+\textbf{\large Feature 3: Rectangle}
+	
+\textbf{Extraction:} Only the four edges have to be detected, relatively easy.
+
+\textbf{Feature Parameters:}
+\begin{itemize}
+ \item $a, b$: length of the rectangle sides
+ \item $u, v$: the bounding rectangle sides
+ \item $\alpha$: rotation of the rectangle ($\alpha \in [\ang{0}, \ang{180}]$)
+\end{itemize}
+
+\textbf{Controllable DoFs:} 4 ($x, y, z$ and $z$-rotation)\\
+There will be ambiguities regarding $z$-rotation though!
+
+\textbf{Dimensionality of the Image Jacobian:} $5 \times 4$\\
+($k \times m$ with $k$ = dimension of feature space, $m$ = dimension of task space)
+
+The resulting system of equations is \underline{overconstrained} (because $k > m$).
+
+% -------------------------------------
+
+\subsection*{2(a) Make sure your implementation is tolerant to adverse camera images and document the steps you did to ensure this.}
+
+In real camera images there will be noise. In order to still find a circle, the camera image can be blurred a little. This is already done automatically in the \texttt{cv\_main.cpp} though.\\
+The last four parameters of the opencv-function \texttt{HoughCircles()} are:
+
+\begin{enumerate}
+  \item the upper threshold for the internal Canny edge detector
+  \item the threshold for center detection
+  \item minimum circle radius to be detected (0 if unknown)
+  \item maximum circle radius to be detected (0 if unknown)
+\end{enumerate}
+
+Choosing these appropriately might yield better results depending on the exact scenario.
+
+% -------------------------------------
+
+\subsection*{3(a) We need to know the depth distance $z$ of the circle to compute our Image Jacobian. Derive the formula for calculating $z$ and include a short explanation of the derivation in your report.}
+
+Based on the exercise slides on perspective projection we know that the ratio of the circle-radius in the image-plane $r$ and the focal length $f$ is the same as the ratio of the circle-radius in the cartesian space $\frac{d}{2}$ and the depth distance $z$. Given we know $f$, $r$ and $d$ we can compute $z$:
+
+$$\frac{r}{f} = \frac{d}{2z} \hspace{1cm} \Longleftrightarrow \hspace{1cm} z=\frac{f}{2 \cdot r} \cdot d$$
+
+\textbf{Parameters:}
+\begin{itemize}
+  \item $r$: the radius of the circle in the image plane [in pixels]
+  \item $f$: the focal length of the camera [in pixels]
+  \item $d$: the diameter of the real circle [in meters]
+  \item $z$: the depth distance [in meters]
+\end{itemize}
+
+In reality though this will only serve as an estimate as the detected radius of the circle in the image plane can vary e.g. because of noise or preprocessing steps like gaussian blur).
+
+% -------------------------------------
+
+\subsection*{3(b) In addition to the circle centroid's position, the Image Jacobian also depends on the focal length of the camera. Describe a way to determine this parameter experimentally.}
+
+This can be done using the same relationship as in 3(a). We simply place a circle of known size in a fixed distance to the camera and measure the size of its projection in the image plane:
+
+$$\frac{r}{f} = \frac{d}{2z} \hspace{1cm} \Longleftrightarrow \hspace{1cm} f=\frac{2z}{d} \cdot r$$
+
+\textbf{Parameters:}
+\begin{itemize}
+  \item $r$: the radius of the circle in the image plane [in pixels]
+  \item $f$: the focal length of the camera [in pixels]
+  \item $d$: the diameter of the real circle [in meters]
+  \item $z$: the depth distance [in meters]
+\end{itemize}
+
+% -------------------------------------
+
+\subsection*{3(c) Specify the image Jacobian $J_I \in \mathbb{R}_{3\times3}$ and describe the equation for each element of the Jacobian in your written report.}
+
+$$J_{I} = \begin{bmatrix}
+	-\dfrac{f}{z} & 0 & \dfrac{u}{z}\\[2ex]
+	0 & -\dfrac{f}{z} & \dfrac{v}{z}\\[2ex]
+	0 & 0 & \dfrac{f \cdot d}{z^2}
+\end{bmatrix}$$
+
+\textbf{Parameters:}
+\begin{itemize}
+	\item $f$: the focal length of the camera [in pixels]
+	\item $z$: the estimated depth (cf. 3(a)) of the circle [in meters]
+	\item $(u, v)$: center coordinates of the circle in the image plane [in pixels]
+	\item $d$: the diameter of the real circle [in meters]
+\end{itemize}
+
+\end{document}

@@ -1,0 +1,234 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[margin=30mm]{geometry}
+
+\setlength{\parskip}{12pt}
+\setlength{\parindent}{0pt}
+
+% language
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+\usepackage{graphicx}         % includegraphics{}
+\usepackage{float}            % H placement for figures
+\usepackage{hyperref}
+\usepackage{amsmath}          % bmatrix, pmatrix
+\usepackage{amssymb}
+\usepackage{siunitx}
+\usepackage[export]{adjustbox}
+
+
+% -----------------------------------------------------------------------------
+
+
+\begin{document}
+\begin{center}
+  \textbf{\Huge TU Berlin Robotics WiSe 18/19} \\
+  \textbf{\huge Lab Assignment \#4}
+\end{center}
+
+\vfill
+
+\begin{table}[h!]
+  \begin{center}
+    \begin{tabular}{c|c|c|c|c|c|c|c|c|c|c}
+      Student Name    & \textbf{(A)} & \textbf{B1} & \textbf{B2} & \textbf{(B3)} & \textbf{C1} & \textbf{C2} & \textbf{C3} & \textbf{C4} & \textbf{C5} & \textbf{C6}\\\hline\hline
+      Miklós Knébel    &       x      &       x       &       x       &       x       &       x       &       x       &       x       &      x      &      x     &      x      \\\hline
+      Lauri Antti Olavi Laatu    &       ~      &       ~       &       ~       &       ~       &       ~       &       ~       &       x       &      x      &      x     &      ~      \\\hline
+      Jiaqiao Peng    &       ~      &       ~       &       ~       &       ~       &       x       &       x       &       x       &      x      &      x     &      x      \\\hline
+    \end{tabular}
+    \caption{implementation table}
+  \end{center}
+\end{table}
+
+\newpage
+
+
+\section*{A Bayes}
+
+\subsection*{1. Imagine a robot that is equipped with a sensor for detecting whether a door is open or closed. The robot obtains a measurement $z = 42$ from this sensor. From previous experience, we know that $P(z = 42 | open) = \frac{2}{3}$ and that $P(z = 42 | \neg{open}) = \frac{1}{3}$. The door can only be either completely open or completely closed. We also know that the door is open more often than not, i.e. $P(open) = \frac{3}{5}$.
+Compute the probability, $P(open | z = 42)$, of the door being open given the measurement $z = 42$ and our prior knowledge about the door.}
+
+According to Bayes' rule:
+
+\begin{equation}
+  P(A|B) = \frac{P(B|A)P(A)}{P(B)}
+\end{equation}
+
+Then:
+
+\begin{equation}
+  P(B|A) = P(z = 42 | open) = \frac{2}{3}
+\end{equation}
+  
+\begin{equation}
+  P(z = 42 | \neg{open}) = \frac{1}{3}
+\end{equation}
+
+\begin{equation}
+  P(open) = \frac{3}{5} = P(A)
+\end{equation}
+
+\begin{equation}
+  P(B) = P(z = 42)
+\end{equation}
+
+Finally we can compute the probability:
+
+\begin{equation}
+  P(open | z = 42) = \frac{\frac{2}{3}\cdot \frac{3}{5}}{\frac{3}{5}\cdot \frac{2}{3} + \frac{2}{5}\cdot\frac{1}{3}} = \frac{\frac{6}{15}}{\frac{6}{15}+\frac{2}{15}} = \frac{\frac{6}{15}}{\frac{8}{15}} = \frac{3}{4}
+\end{equation}
+
+% -------------------------------------
+
+\section*{B Mapping with Raw Odometry}
+
+\subsection*{2. Verify your results using the sensor data recorded in file mapping/maze\_corridor.bag (in ros-bag format: http://wiki.ros.org/Bags) provided with this assignment. Save three screenshots of the visualization of the map building process as shown in the \textbf{map\_view}. The screenshots should be taken roughly at the time steps $t_{1}\approx 2s$, $t_{2}\approx 8s$ and $t_{3}\approx 20s$ of the rosbag. Please include these generated images in your solution.}
+
+Here is the screenshot:
+
+\begin{figure}[H]
+  \centering
+	\includegraphics{B2-2s.png}
+	\caption{The screenshot at the time step $t_{1}\approx 2s$}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics{B2-8s.png}
+	\caption{The screenshot at the time step $t_{1}\approx 8s$}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics{B2-20s.png}
+	\caption{The screenshot at the time step $t_{1}\approx 20s$}
+\end{figure}
+
+% -------------------------------------
+
+\subsection*{3. Why does the resulting map differ so much from reality? Describe how the result could be improved.}
+
+Since the wheels and encoders are slipping while the robot is moving, the map gets deformed. If the position and orientation of the robot would be more accurate, the map would also be more realistic.
+Additional or more advanced sensors (for example: gyroscope) could help to get the proper information about the robot’s movement.
+
+% -------------------------------------
+
+\section*{C Monte Carlo Localization: Particle Filter}
+
+\subsection*{4. Write a function that, given a range measurement $z_{t}$, a pose $x_{t}$ and a map $m$, computes the likelihood $P(z | x, m)$ of the measurement. Implement the Likelihood Field Model to compute the likelihood. }
+
+(c) Include a screenshot of the likelihood field in your report.
+
+\begin{figure}[htb]
+	\centering
+	\includegraphics{LikelihoodField.png}
+	\caption{The screenshot of the likelihood field}
+\end{figure}
+
+% -------------------------------------
+
+\subsection*{6. Test your implementation in two scenarios using the rosbag \textbf{maze\_localize.bag} provided with this assignment.}
+
+(a) Global Localization: Start with a uniformly distributed particle set. Include eight screenshots showing the map with the particles, estimated robot pose and robot path in your solution. They should roughly represent the time steps $t_{1} = 5s$, $t_{2} = 10s$, $t_{3} = 14s$, $t_{4} = 20s$, $t_{5} = 30s$, $t_{6} = 42s$, $t_{7} = 60s$ and $t_{8} = 75s$ of the rosbag.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{6a-5s.png}
+	\caption{The screenshot of (a) at $t_{1} = 5s$}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{6a-10s.png}
+	\caption{The screenshot of (a) at $t_{1} = 10s$}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{6a-14s.png}
+	\caption{The screenshot of (a) at $t_{1} = 14s$}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{6a-20s.png}
+	\caption{The screenshot of (a) at $t_{1} = 20s$}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{6a-30s.png}
+	\caption{The screenshot of (a) at $t_{1} = 30s$}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{6a-42s.png}
+	\caption{The screenshot of (a) at $t_{1} = 42s$}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{6a-60s.png}
+	\caption{The screenshot of (a) at $t_{1} = 60s$}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{6a-75s.png}
+	\caption{The screenshot of (a) at $t_{1} = 75s$}
+\end{figure}
+
+(b) T racking: Start with Gaussian distributed particles around the lower left corner of the maze, i.e. $\mu = (4.1, 6.5, 4.5)$ and $\sigma  = (0.2, 0.2, 0.5)$. You can use the ROS service \textbf{distribute\_normal} or the parameter server to initialize the filter. Generate screenshots as in (a).
+
+Here is the screenshot:
+
+\begin{figure}[H]
+  \centering
+	\includegraphics[width=\textwidth]{6b-5s.png}
+	\caption{The screenshot of (b) at $t_{1} = 5s$}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{6b-10s.png}
+	\caption{The screenshot of (b) at $t_{1} = 10s$}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{6b-14s.png}
+	\caption{The screenshot of (b) at $t_{1} = 14s$}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{6b-20s.png}
+	\caption{The screenshot of (b) at $t_{1} = 20s$}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{6b-30s.png}
+	\caption{The screenshot of (b) at $t_{1} = 30s$}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{6b-42s.png}
+	\caption{The screenshot of (b) at $t_{1} = 42s$}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{6b-60s.png}
+	\caption{The screenshot of (b) at $t_{1} = 60s$}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{6b-75s.png}
+	\caption{The screenshot of (b) at $t_{1} = 75s$}
+\end{figure}
+
+\end{document}
